@@ -1,10 +1,15 @@
 import photo from "./assets/photo.jpg";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import secondToMS from "./utils/seconds_to_ms.js";
 
 export default function App() {
   const [time, setTime] = useState(0);
   const [win, setWin] = useState(false);
+  const photoRef = useRef(null);
+  const [coordinates, setCoordinates] = useState(null);
+
+  const imageModules = import.meta.glob("./assets/char*", { eager: true });
+  const imageUrls = Object.values(imageModules).map((mod) => mod.default);
 
   useEffect(() => {
     if (win) return;
@@ -15,10 +20,46 @@ export default function App() {
     return () => clearInterval(interval);
   }, [win]);
 
+  const handleClick = (event) => {
+    if (!photoRef.current) return;
+
+    const rect = photoRef.current.getBoundingClientRect();
+
+    const pixelX = event.clientX - rect.left;
+    const pixelY = event.clientY - rect.top;
+
+    const percentX = (pixelX / rect.width) * 100;
+    const percentY = (pixelY / rect.height) * 100;
+
+    setCoordinates({ x: percentX.toFixed(), y: percentY.toFixed() });
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-8">
-      <div className="font-bold sm:text-3xl lg:text-5xl ">{time}</div>
-      <img src={photo} className="w-6xl" onClick={() => setWin(true)} />
+      <div className="font-bold sm:text-3xl lg:text-5xl ">
+        {secondToMS(time)}
+      </div>
+      <div className="w-full lg:w-6xl">
+        <div className="text-xl font-bold sm:text-3xl mb-4">
+          Find these shitheads
+        </div>
+        <ul className=" flex justify-between items-center flex-row">
+          {imageUrls.map((char) => (
+            <li key={char}>
+              <img
+                src={char}
+                className={`${char.includes("3") ? "w-25 sm:w-50" : "w-12 sm:w-25"} `}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+      <img
+        onClick={(event) => handleClick(event)}
+        src={photo}
+        className="w-6xl"
+        ref={photoRef}
+      />
       {win && (
         <div className="flex flex-col gap-4">
           <div>Congratulations! You have found waldo in {secondToMS(time)}</div>
@@ -37,6 +78,9 @@ export default function App() {
           </form>
         </div>
       )}
+      <div>
+        x: {coordinates?.x}, y: {coordinates?.y}
+      </div>
     </div>
   );
 }

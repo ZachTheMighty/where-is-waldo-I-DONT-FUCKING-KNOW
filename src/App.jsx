@@ -15,6 +15,8 @@ export default function App() {
       return { id: index + 1, url, found: false };
     }),
   );
+  const [username, setUsername] = useState("");
+  const [errors, setErrors] = useState(null);
 
   const photoRef = useRef(null);
 
@@ -55,6 +57,20 @@ export default function App() {
       });
   };
 
+  const handleWin = async (event) => {
+    event.preventDefault();
+
+    const response = await fetch("http://localhost:8080/users", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, time: secondToMS(time) }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) return setErrors(data.errors);
+    setErrors(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-8">
       <div className="font-bold sm:text-3xl lg:text-5xl ">
@@ -80,14 +96,35 @@ export default function App() {
       {win && (
         <div className="flex flex-col gap-4">
           <div>Congratulations! You have found waldo in {secondToMS(time)}</div>
-          <form className="flex flex-col gap-4">
+          <form
+            onSubmit={(event) => handleWin(event)}
+            className="flex flex-col gap-4"
+          >
             <div className="flex flex-col">
               <label htmlFor="name">Name</label>
               <input
                 id="name"
                 name="name"
                 className="outline p-4 hover:outline-blue-500 focus:outline-2 focus:outline-blue-500"
+                placeholder="Enter name"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
               />
+              {errors ? (
+                <ul className="list-disc text-xs text-red-500 mt-2 font-bold">
+                  {errors.map((error, index) => {
+                    return (
+                      <li key={index} className="">
+                        {error.msg}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : errors === false ? (
+                <div>Successfully recorded your time</div>
+              ) : (
+                ""
+              )}
             </div>
             <button className="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 active:bg-gray-200 font-bold">
               Submit record

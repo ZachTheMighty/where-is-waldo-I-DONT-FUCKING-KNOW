@@ -2,6 +2,7 @@ import photo from "./assets/photo.jpg";
 import { useEffect, useRef, useState } from "react";
 import secondToMS from "./utils/seconds_to_ms.js";
 import { Check } from "lucide-react";
+import { TableHead, TableData } from "./components/table.jsx";
 
 const imageModules = import.meta.glob("./assets/char*", { eager: true });
 const imageUrls = Object.values(imageModules).map((mod) => mod.default);
@@ -18,6 +19,8 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [errors, setErrors] = useState(null);
 
+  const [top, setTop] = useState([]);
+
   const photoRef = useRef(null);
 
   useEffect(() => {
@@ -28,6 +31,12 @@ export default function App() {
     );
     return () => clearInterval(interval);
   }, [characters]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/users/top")
+      .then((response) => response.json())
+      .then((data) => setTop(data));
+  }, []);
 
   const handleClick = async (event) => {
     if (!photoRef.current) return;
@@ -63,19 +72,24 @@ export default function App() {
     const response = await fetch("http://localhost:8080/users", {
       method: "post",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, time: secondToMS(time) }),
+      body: JSON.stringify({ username, time }),
     });
 
     const data = await response.json();
     if (!response.ok) return setErrors(data.errors);
     setErrors(false);
+
+    if (top.length < 3) return setTop([...top, data.user]);
+
+    const userToReplace = top.findIndex((char) => data.user.time < char.time);
+    if (userToReplace === -1) return;
+
+    setTop(top.toSpliced(userToReplace, 0, data.user));
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-8">
-      <div className="font-bold sm:text-3xl lg:text-5xl ">
-        {secondToMS(time)}
-      </div>
+      <div className="font-bold sm:text-3xl lg:text-5xl ">{time}</div>
       <div className="w-full lg:w-6xl">
         <div className="text-xl font-bold sm:text-3xl mb-4">
           Find these shitheads
@@ -133,6 +147,29 @@ export default function App() {
         </div>
       )}
       <div>{currentFound ? "You have found a character." : "Missed"}</div>
+
+      <table className="mb-80">
+        <caption className="bg-yellow-500 py-2">LEADERBOARD</caption>
+        <thead>
+          <tr className="bg-cyan-500">
+            <TableHead text="Rank" />
+            <TableHead text="Name" />
+            <TableHead text="Time" />
+          </tr>
+        </thead>
+        <tbody>
+          {top
+            .slice(0, 3)
+            .toSorted((charA, charB) => charA.time - charB.time)
+            .map((user, index) => (
+              <tr key={user.id} className="bg-gray-500">
+                <TableData text={index + 1} />
+                <TableData text={user.name} />
+                <TableData text={secondToMS(user.time)} />
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -92,8 +92,11 @@ export default function Game({ playAgain }) {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center gap-8">
-      <div className="font-bold sm:text-3xl lg:text-5xl ">
-        {secondToMS(time)}
+      <div className="font-bold sm:text-3xl lg:text-5xl">
+        {secondToMS(time).split(".")[0]}
+        <sub className="sm:text-lg lg:text-2xl sm:ml-1">
+          {secondToMS(time).split(".")[1]}
+        </sub>
       </div>
       <div className="w-full lg:w-6xl">
         <div className="text-xl font-bold sm:text-3xl mb-4">

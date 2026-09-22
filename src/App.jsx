@@ -25,9 +25,8 @@ export default function App() {
 
   useEffect(() => {
     if (characters.every((char) => char.found)) return setWin(true);
-    const interval = setInterval(
-      () => setTime((prevTime) => prevTime + 1),
-      1000,
+    const interval = setInterval(() =>
+      setTime((performance.now() / 1000).toFixed(3)),
     );
     return () => clearInterval(interval);
   }, [characters]);

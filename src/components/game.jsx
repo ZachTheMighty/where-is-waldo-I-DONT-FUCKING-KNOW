@@ -9,7 +9,7 @@ const imageUrls = Object.values(imageModules).map((mod) => mod.default);
 
 export default function Game({ playAgain }) {
   const [time, setTime] = useState(0);
-  const [currentFound, setCurrentFound] = useState(false);
+  const [currentCoords, setCurrentCoords] = useState({});
   const [win, setWin] = useState(false);
   const [coords, setCoords] = useState(
     imageUrls.map((url, index) => {
@@ -51,6 +51,7 @@ export default function Game({ playAgain }) {
   }, []);
 
   const handleClick = async (event) => {
+    if (win) return;
     if (!photoRef.current) return;
 
     const rect = photoRef.current.getBoundingClientRect();
@@ -68,8 +69,10 @@ export default function Game({ playAgain }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.found) setCurrentFound(true);
-        else setCurrentFound(false);
+        if (!data.found) {
+          setCurrentCoords({ x: percentX, y: percentY, found: false });
+          setTimeout(() => setCurrentCoords({ x: percentX, y: percentY }), 500);
+        }
         setCoords(
           coords.map((coord) =>
             coord.id === data.coord.id ? { ...coord, found: true } : coord,
@@ -107,11 +110,11 @@ export default function Game({ playAgain }) {
           {secondToMS(time).split(".")[1]}
         </sub>
       </div>
-      <div className="w-full lg:w-6xl">
+      <div className="w-full lg:w-6xl px-2 sm:px-8 lg:p-0">
         <div className="text-xl font-bold sm:text-3xl mb-4">
           Find these shitheads
         </div>
-        <ul className=" flex justify-between items-center flex-row">
+        <ul className="flex justify-between items-center">
           {coords.map((coord) => (
             <li key={coord.url} className="flex flex-col items-center">
               <img src={coord.url} className="h-25 sm:h-50" />
@@ -137,9 +140,20 @@ export default function Game({ playAgain }) {
                   width: `${coord.maxX - coord.minX}%`,
                   height: `${coord.maxY - coord.minY}%`,
                 }}
-                className="absolute outline sm:outline-2 lg:outline-3 outline-green-500"
+                className="absolute outline sm:outline-3 lg:outline-4 outline-green-500"
               ></div>
             ),
+        )}
+        {currentCoords.found === false && (
+          <div
+            style={{
+              left: `${currentCoords.x}%`,
+              top: `${currentCoords.y}%`,
+            }}
+            className="absolute text-black text-xs font-bold sm:text-base lg:text-2xl"
+          >
+            Miss
+          </div>
         )}
       </div>
       {win && errors !== false ? (
@@ -189,8 +203,6 @@ export default function Game({ playAgain }) {
       ) : (
         ""
       )}
-      <div>{currentFound ? "You have found a character." : "Missed"}</div>
-
       <table className="mb-80">
         <caption className="bg-yellow-500 py-2">LEADERBOARD</caption>
         <thead>

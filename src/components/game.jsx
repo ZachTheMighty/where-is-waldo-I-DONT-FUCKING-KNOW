@@ -11,11 +11,12 @@ export default function Game({ playAgain }) {
   const [time, setTime] = useState(0);
   const [currentFound, setCurrentFound] = useState(false);
   const [win, setWin] = useState(false);
-  const [characters, setCharacters] = useState(
+  const [coords, setCoords] = useState(
     imageUrls.map((url, index) => {
       return { id: index + 1, url, found: false };
     }),
   );
+
   const [username, setUsername] = useState("");
   const [errors, setErrors] = useState(null);
 
@@ -25,7 +26,7 @@ export default function Game({ playAgain }) {
   const startTimeRef = useRef(performance.now());
 
   useEffect(() => {
-    if (characters.every((char) => char.found)) return setWin(true);
+    if (coords.every((coord) => coord.found)) return setWin(true);
 
     const interval = setInterval(
       () =>
@@ -33,7 +34,7 @@ export default function Game({ playAgain }) {
       10,
     );
     return () => clearInterval(interval);
-  }, [characters]);
+  }, [coords]);
 
   useEffect(() => {
     fetch("http://localhost:8080/users/top")
@@ -61,9 +62,9 @@ export default function Game({ playAgain }) {
       .then((data) => {
         if (data.found) setCurrentFound(true);
         else setCurrentFound(false);
-        setCharacters(
-          characters.map((char) =>
-            char.id === data.character.id ? { ...char, found: true } : char,
+        setCoords(
+          coords.map((coord) =>
+            coord.id === data.coord.id ? { ...coord, found: true } : coord,
           ),
         );
       });
@@ -84,7 +85,7 @@ export default function Game({ playAgain }) {
 
     if (top.length < 3) return setTop([...top, data.user]);
 
-    const userToReplace = top.findIndex((char) => data.user.time < char.time);
+    const userToReplace = top.findIndex((coord) => data.user.time < coord.time);
     if (userToReplace === -1) return;
 
     setTop(top.toSpliced(userToReplace, 0, data.user));
@@ -103,10 +104,10 @@ export default function Game({ playAgain }) {
           Find these shitheads
         </div>
         <ul className=" flex justify-between items-center flex-row">
-          {characters.map((char) => (
-            <li key={char.url} className="flex flex-col items-center">
-              <img src={char.url} className="h-25 sm:h-50" />
-              {char.found && <Check className="text-green-500" size="30" />}
+          {coords.map((coord) => (
+            <li key={coord.url} className="flex flex-col items-center">
+              <img src={coord.url} className="h-25 sm:h-50" />
+              {coord.found && <Check className="text-green-500" size="30" />}
             </li>
           ))}
         </ul>
@@ -173,7 +174,7 @@ export default function Game({ playAgain }) {
         <tbody>
           {top
             .slice(0, 3)
-            .toSorted((charA, charB) => charA.time - charB.time)
+            .toSorted((coordA, coordB) => coordA.time - coordB.time)
             .map((user, index) => (
               <tr key={user.id} className="bg-gray-500">
                 <TableData text={index + 1} />

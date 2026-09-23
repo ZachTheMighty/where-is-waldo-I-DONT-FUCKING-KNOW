@@ -28,7 +28,7 @@ export default function Game({ playAgain }) {
   const startTimeRef = useRef(performance.now());
 
   useEffect(() => {
-    fetch("http://localhost:8080/coords")
+    fetch("https://where-is-waldo-api-g88a.onrender.com/coords")
       .then((response) => response.json())
       .then((data) => setAllCoords(data));
   }, []);
@@ -45,7 +45,7 @@ export default function Game({ playAgain }) {
   }, [coords]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/users/top")
+    fetch("https://where-is-waldo-api-g88a.onrender.com/users/top")
       .then((response) => response.json())
       .then((data) => setTop(data));
   }, []);
@@ -62,7 +62,7 @@ export default function Game({ playAgain }) {
     const percentX = (pixelX / rect.width) * 100;
     const percentY = (pixelY / rect.height) * 100;
 
-    await fetch("http://localhost:8080/coords", {
+    await fetch("https://where-is-waldo-api-g88a.onrender.com/coords", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ x: percentX, y: percentY }),
@@ -84,11 +84,14 @@ export default function Game({ playAgain }) {
   const handleWin = async (event) => {
     event.preventDefault();
 
-    const response = await fetch("http://localhost:8080/users", {
-      method: "post",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, time: parseFloat(time) }),
-    });
+    const response = await fetch(
+      "https://where-is-waldo-api-g88a.onrender.com/users",
+      {
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, time: parseFloat(time) }),
+      },
+    );
 
     const data = await response.json();
     if (!response.ok) return setErrors(data.errors);

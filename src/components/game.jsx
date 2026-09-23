@@ -11,7 +11,7 @@ export default function Game({ playAgain }) {
   const [time, setTime] = useState(0);
   const [currentFound, setCurrentFound] = useState(false);
   const [win, setWin] = useState(false);
-  const [coords, setCoords] = useState(
+  const [characters, setCharacters] = useState(
     imageUrls.map((url, index) => {
       return { id: index + 1, url, found: false };
     }),
@@ -25,7 +25,7 @@ export default function Game({ playAgain }) {
   const startTimeRef = useRef(performance.now());
 
   useEffect(() => {
-    if (coords.every((coord) => coord.found)) return setWin(true);
+    if (characters.every((char) => char.found)) return setWin(true);
 
     const interval = setInterval(
       () =>
@@ -33,7 +33,7 @@ export default function Game({ playAgain }) {
       10,
     );
     return () => clearInterval(interval);
-  }, [coords]);
+  }, [characters]);
 
   useEffect(() => {
     fetch("http://localhost:8080/users/top")
@@ -46,21 +46,24 @@ export default function Game({ playAgain }) {
 
     const rect = photoRef.current.getBoundingClientRect();
 
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const pixelX = event.clientX - rect.left;
+    const pixelY = event.clientY - rect.top;
+
+    const percentX = (pixelX / rect.width) * 100;
+    const percentY = (pixelY / rect.height) * 100;
 
     await fetch("http://localhost:8080/coords", {
       method: "post",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ x, y }),
+      body: JSON.stringify({ x: percentX, y: percentY }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.found) setCurrentFound(true);
         else setCurrentFound(false);
-        setCoords(
-          coords.map((coord) =>
-            coord.id === data.coord.id ? { ...coord, found: true } : coord,
+        setCharacters(
+          characters.map((char) =>
+            char.id === data.character.id ? { ...char, found: true } : char,
           ),
         );
       });
@@ -81,7 +84,7 @@ export default function Game({ playAgain }) {
 
     if (top.length < 3) return setTop([...top, data.user]);
 
-    const userToReplace = top.findIndex((coord) => data.user.time < coord.time);
+    const userToReplace = top.findIndex((char) => data.user.time < char.time);
     if (userToReplace === -1) return;
 
     setTop(top.toSpliced(userToReplace, 0, data.user));
@@ -100,10 +103,10 @@ export default function Game({ playAgain }) {
           Find these shitheads
         </div>
         <ul className=" flex justify-between items-center flex-row">
-          {coords.toReversed().map((coord) => (
-            <li key={coord.url} className="flex flex-col items-center">
-              <img src={coord.url} className="h-25 sm:h-50" />
-              {coord.found && <Check className="text-green-500" size="30" />}
+          {characters.map((char) => (
+            <li key={char.url} className="flex flex-col items-center">
+              <img src={char.url} className="h-25 sm:h-50" />
+              {char.found && <Check className="text-green-500" size="30" />}
             </li>
           ))}
         </ul>
@@ -170,7 +173,7 @@ export default function Game({ playAgain }) {
         <tbody>
           {top
             .slice(0, 3)
-            .toSorted((coordA, coordB) => coordA.time - coordB.time)
+            .toSorted((charA, charB) => charA.time - charB.time)
             .map((user, index) => (
               <tr key={user.id} className="bg-gray-500">
                 <TableData text={index + 1} />

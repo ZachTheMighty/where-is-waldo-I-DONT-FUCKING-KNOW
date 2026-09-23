@@ -118,7 +118,9 @@ export default function Game({ playAgain }) {
           {coords.map((coord) => (
             <li key={coord.url} className="flex flex-col items-center">
               <img src={coord.url} className="h-25 sm:h-50" />
-              {coord.found && <Check className="text-green-500" size="30" />}
+              <div className="w-[30px] h-[30px]">
+                {coord.found && <Check className="text-green-500" size="30" />}
+              </div>
             </li>
           ))}
         </ul>

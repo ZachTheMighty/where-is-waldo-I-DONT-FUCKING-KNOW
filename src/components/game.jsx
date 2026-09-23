@@ -22,8 +22,16 @@ export default function Game({ playAgain }) {
 
   const [top, setTop] = useState([]);
 
+  const [allCoords, setAllCoords] = useState([]);
+
   const photoRef = useRef(null);
   const startTimeRef = useRef(performance.now());
+
+  useEffect(() => {
+    fetch("http://localhost:8080/coords")
+      .then((response) => response.json())
+      .then((data) => setAllCoords(data));
+  }, []);
 
   useEffect(() => {
     if (coords.every((coord) => coord.found)) return setWin(true);
@@ -112,7 +120,28 @@ export default function Game({ playAgain }) {
           ))}
         </ul>
       </div>
-      <img onClick={(event) => handleClick(event)} src={photo} ref={photoRef} />
+      <div className="relative">
+        <img
+          onClick={(event) => handleClick(event)}
+          src={photo}
+          ref={photoRef}
+        />
+        {allCoords.map(
+          (coord, index) =>
+            coords[index].found && (
+              <div
+                key={coord.id}
+                style={{
+                  left: `${coord.minX}%`,
+                  top: `${coord.minY}%`,
+                  width: `${coord.maxX - coord.minX}%`,
+                  height: `${coord.maxY - coord.minY}%`,
+                }}
+                className="absolute outline sm:outline-2 lg:outline-3 outline-green-500"
+              ></div>
+            ),
+        )}
+      </div>
       {win && errors !== false ? (
         <div className="flex flex-col gap-4">
           <div>Congratulations! You have found waldo in {secondToMS(time)}</div>

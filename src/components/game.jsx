@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import secondToMS from "../utils/seconds_to_ms.js";
 import { Check } from "lucide-react";
 import { TableHead, TableData } from "./table.jsx";
+import github from "../assets/github.svg";
 
 const imageModules = import.meta.glob("../assets/char*", { eager: true });
 const imageUrls = Object.values(imageModules).map((mod) => mod.default);
@@ -31,6 +32,7 @@ export default function Game({ playAgain }) {
     fetch("https://where-is-waldo-api-g88a.onrender.com/coords")
       .then((response) => response.json())
       .then((data) => setAllCoords(data));
+    fetch;
   }, []);
 
   useEffect(() => {
@@ -230,6 +232,14 @@ export default function Game({ playAgain }) {
             ))}
         </tbody>
       </table>
+      <footer className="flex justify-center items-center">
+        <a
+          href="https://github.com/ZachTheMighty/where-is-waldo-I-DONT-FUCKING-KNOW"
+          target="_blank"
+        >
+          <img src={github} className="w-10 sm:w-15 mb-10" />
+        </a>
+      </footer>
     </div>
   );
 }
